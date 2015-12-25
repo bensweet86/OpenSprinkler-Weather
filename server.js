@@ -1,8 +1,10 @@
 var express		= require( "express" ),
     weather		= require( "./routes/weather.js" ),
+    cloud		= require( "./routes/cloud.js" ),
     mongoose	= require( "mongoose" ),
     Cache		= require( "./models/Cache" ),
     CronJob		= require( "cron" ).CronJob,
+    net			= require( "net" ),
 	port		= process.env.PORT || 3000,
 	app			= express();
 
@@ -34,6 +36,25 @@ app.use( function( req, res ) {
 app.listen( port, "127.0.0.1", function() {
 
   console.log( "OpenSprinkler Weather Service now listening on port %s", port );
+} );
+
+// Start the cloud server end point
+var server = net.createServer( function( socket ) {
+
+	console.log( "Connection from " + socket.remoteAddress );
+	socket.on( "data", function( data ) {
+		cloud.computeSecret( data, function( hex, secret ) {
+			socket.write( hex );
+			console.log( hex, secret );
+		} );
+	} );
+	socket.on( "close", function() {
+		console.log( "Closed" );
+	} );
+} );
+
+server.listen( 1663, function() {
+	console.log( "OpenSprinkler Cloud Service now listening on port 1663." );
 } );
 
 // Schedule a cronjob daily to consildate the weather cache data, runs daily

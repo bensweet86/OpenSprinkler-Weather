@@ -7,21 +7,6 @@ var hippie		= require( "hippie" ),
 
 describe( "Weather API", function() {
 	describe( "/:method endpoint", function() {
-		it( "The Weather Channel Source Test", function( done ) {
-			for ( var test in expected.WSI ) {
-				if ( expected.WSI.hasOwnProperty( test ) ) {
-					apiTest( {
-						method: 1,
-						loc: test,
-						expected: expected.WSI[test],
-						callback: function( reply ) {
-							done();
-						}
-					} );
-				}
-			}
-		} );
-
 		it( "Weather Underground Source Test", function( done ) {
 			for ( var test in expected.WU ) {
 				if ( expected.WU.hasOwnProperty( test ) ) {
@@ -29,7 +14,7 @@ describe( "Weather API", function() {
 						method: 1,
 						loc: test,
 						key: process.env.WU_API_KEY,
-						expected: expected.WU[test],
+						expected: expected.WU[ test ],
 						callback: function( reply ) {
 							done();
 						}
@@ -44,7 +29,7 @@ describe( "Weather API", function() {
 					apiTest( {
 						method: 0,
 						loc: test,
-						expected: expected.noWeather[test],
+						expected: expected.noWeather[ test ],
 						callback: function( reply ) {
 							done();
 						}
@@ -88,28 +73,21 @@ function setupMocks( location ) {
 	        return "/";
 	    } )
 	    .get( "/" )
-		.reply( 200,  replies[location].WUautoComplete );
+		.reply( 200,  replies[ location ].WUautoComplete );
 
 	nock( "http://api.wunderground.com" )
 		.filteringPath( function( path ) {
 	        return "/";
 	    } )
 	    .get( "/" )
-		.reply( 200, replies[location].WUyesterday );
-
-	nock( "http://api.weather.com" )
-		.filteringPath( function( path ) {
-	        return "/";
-	    } )
-	    .get( "/" )
-		.reply( 200, replies[location].WSIcurrent );
+		.reply( 200, replies[ location ].WUyesterday );
 }
 
 function extend( target ) {
     var sources = [].slice.call( arguments, 1 );
     sources.forEach( function( source ) {
         for ( var prop in source ) {
-            target[prop] = source[prop];
+            target[ prop ] = source[ prop ];
         }
     } );
     return target;
