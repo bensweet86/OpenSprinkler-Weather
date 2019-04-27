@@ -1,5 +1,6 @@
 var express		= require( "express" ),
-    weather		= require( "./routes/weather.js" ),
+	weather		= require( "./routes/weather.js" ),
+	cors		= require( "cors" ),
 	host		= process.env.HOST || "127.0.0.1",
 	port		= process.env.PORT || 3000,
 	app			= express();
@@ -15,6 +16,10 @@ if ( !process.env.HOST || !process.env.PORT ) {
 // This endpoint is considered deprecated and supported for prior firmware
 app.get( /weather(\d+)\.py/, weather.getWeather );
 app.get( /(\d+)/, weather.getWeather );
+
+// Handle requests matching /weatherData
+app.options( /weatherData/, cors() );
+app.get( /weatherData/, cors(), weather.showWeatherData );
 
 app.get( "/", function( req, res ) {
 	res.send( "OpenSprinkler Weather Service" );
