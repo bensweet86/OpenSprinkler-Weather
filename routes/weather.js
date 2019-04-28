@@ -85,13 +85,13 @@ function getDarkSkyData( location, darkSkyKey, callback ) {
 					return;
 				}
 				
-				const maxCount = 24;
-				
 				var currentPrecip = 0,
 					yesterdayPrecip = 0,
-					weather;
+					weather,
+					maxCount = 24,
+					index;
 				
-				for ( var index = 0; index < maxCount; index++ ) {
+				for ( index = 0; index < maxCount; index++ ) {
 					
 					// Only use current day rainfall data for the hourly readings prior to the current hour
 					if ( todayData.hourly.data[index].time <= ( forecastData.currently.time - 3600 ) ) {
@@ -100,7 +100,7 @@ function getDarkSkyData( location, darkSkyKey, callback ) {
 					
 				}
 				
-				for ( var index = 0; index < maxCount; index++ ) {
+				for ( index = 0; index < maxCount; index++ ) {
 					yesterdayPrecip += parseFloat( yesterdayData.hourly.data[index].precipIntensity );
 				}
 				
@@ -506,7 +506,7 @@ function httpsRequest( url, callback ) {
 	https.get( options, function( response ) {
         var data = "";
 
-		response.setEncoding( 'utf8' );
+		response.setEncoding( "utf8" );
 
         // Reassemble the data as it comes in
         response.on( "data", function( chunk ) {
