@@ -291,11 +291,22 @@ exports.showWeatherData = function( req, res ) {
 		location = location.split( "," );
 		location = [ parseFloat( location[ 0 ] ), parseFloat( location[ 1 ] ) ];
 
-		// Continue with the weather request
-		getOWMWeatherData( location, function( data ) {
-			data.location = location;
-			res.json( data );
-		} );
+		// Provide support for Dark Sky weather data
+		if ( darkSkyKey ) {	
+			
+			getDarkSkyData( location, darkSkyKey, function( data ) {
+				data.location = location;
+				res.json( data );
+			} );
+			
+		} else {	
+
+			// Continue with the weather request
+			getOWMWeatherData( location, function( data ) {
+				data.location = location;
+				res.json( data );
+			} );
+	    }
 	} else {
 
 		// Attempt to resolve provided location to GPS coordinates when it does not match
