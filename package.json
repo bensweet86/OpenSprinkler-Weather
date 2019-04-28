@@ -9,9 +9,9 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^6.0.0",
+    "dotenv": "^7.0.0",
     "express": "^4.16.3",
-    "geo-tz": "^4.0.1",
+    "geo-tz": "^5.0.4",
     "grunt": "^1.0.4",
     "moment-timezone": "^0.5.17",
     "suncalc": "^1.8.0"
