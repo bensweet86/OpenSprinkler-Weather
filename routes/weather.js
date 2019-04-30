@@ -283,7 +283,8 @@ function checkRainStatus( weather ) {
 }
 
 exports.showWeatherData = function( req, res ) {
-	var location = req.query.loc;
+	var location = req.query.loc,
+	darkSkyKey	= req.query.dskey;
 
 	if ( filters.gps.test( location ) ) {
 
