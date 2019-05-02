@@ -17,11 +17,11 @@
     "suncalc": "^1.8.0"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
-    "grunt-contrib-jshint": "^1.1.0",
+    "chai": "^4.2.0",
+    "grunt-contrib-jshint": "^2.1.0",
     "hippie": "^0.5.2",
     "istanbul": "^0.4.5",
-    "mocha": "^5.2.0",
-    "nock": "^9.2.6"
+    "mocha": "^6.1.4",
+    "nock": "^10.0.6"
   }
 }
