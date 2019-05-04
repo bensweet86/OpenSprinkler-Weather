@@ -215,10 +215,11 @@ function getDSWeatherData( location, darkSkyKey, callback ) {
 					weather.solar = parseInt( forecastData.currently.uvIndex );
 					weather.forecast = [];
 
-					for ( var index = 1; index < forecastData.daily.data.length; index++ ) {
+					for ( var index = 0; index < forecastData.daily.data.length; index++ ) {
 						weather.forecast.push( {
-							temp_min: parseInt( forecastData.daily.data[ index ].temperatureMin ),
-							temp_max: parseInt( forecastData.daily.data[ index ].temperatureMax ),
+							temp_min: parseInt( forecastData.daily.data[ index ].temperatureLow ),
+							temp_max: parseInt( forecastData.daily.data[ index ].temperatureHigh ),
+							precip: parseFloat( forecastData.daily.data[ index ].precipIntensity * 24),
 							date: parseInt( forecastData.daily.data[ index ].time ),
 							icon: forecastData.daily.data[ index ].icon,
 						} );
