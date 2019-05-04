@@ -52,7 +52,7 @@ function getDarkSkyData( location, darkSkyKey, callback ) {
 		} catch ( err ) {
 			
 			// Otherwise indicate the request failed
-			callback( false );
+			callback( weather );
 			return;
 		}
 		
@@ -66,7 +66,7 @@ function getDarkSkyData( location, darkSkyKey, callback ) {
 			} catch ( err ) {
 
 				// Otherwise indicate the request failed
-				callback( false );
+				callback( weather );
 				return;
 			}
 			
@@ -81,13 +81,12 @@ function getDarkSkyData( location, darkSkyKey, callback ) {
 				} catch ( err ) {
 
 					// Otherwise indicate the request failed
-					callback( false );
+					callback( weather );
 					return;
 				}
 				
 				var currentPrecip = 0,
 					yesterdayPrecip = 0,
-					weather,
 					maxCount = 24,
 					index;
 				
@@ -103,25 +102,27 @@ function getDarkSkyData( location, darkSkyKey, callback ) {
 				for ( index = 0; index < maxCount; index++ ) {
 					yesterdayPrecip += parseFloat( yesterdayData.hourly.data[index].precipIntensity );
 				}
-				
-				weather = {
-					icon:				forecastData.currently.icon || "clear-day",
-					timezone:			parseInt( forecastData.offset ) * 60,
-					sunrise:			parseInt( ( forecastData.daily.data[0].sunriseTime - forecastData.daily.data[0].time ) / 60 ),
-					sunset:				parseInt( ( forecastData.daily.data[0].sunsetTime - forecastData.daily.data[0].time ) / 60 ),
-					maxTemp:			parseInt( yesterdayData.daily.data[0].temperatureHigh ), //Takes logic of high during the day,
-					minTemp:			parseInt( yesterdayData.daily.data[0].temperatureLow ),  //low during the night based on DN logic
-					temp:				parseInt( forecastData.currently.temperature ),
-					humidity:			parseFloat( yesterdayData.daily.data[0].humidity ) * 100,
-					yesterdayPrecip:	yesterdayPrecip,
-					currentPrecip:		currentPrecip,
-					forecastPrecip:		parseFloat( forecastData.daily.data[0].precipIntensity ) * 24,
-					precip:				( currentPrecip > 0 ? currentPrecip : 0) + ( yesterdayPrecip > 0 ? yesterdayPrecip : 0),
-					solar:				parseInt( forecastData.currently.uvIndex ),
-					wind:				parseInt( yesterdayData.daily.data[0].windSpeed )
-				};
 
-				callback ( weather );
+				getTimeData( location, function( weather ) {
+					//weather.region = data.city.country;
+					//weather.city = data.city.name;
+					weather.minTemp = parseInt( yesterdayData.daily.data[0].temperatureHigh ); //Takes logic of high during the day
+					weather.maxTemp = parseInt( yesterdayData.daily.data[0].temperatureHigh ); //Takes logic of high during the day
+					weather.temp = parseInt( forecastData.currently.temperature );
+					weather.humidity = parseFloat( yesterdayData.daily.data[0].humidity ) * 100;
+					weather.wind = parseInt( yesterdayData.daily.data[0].windSpeed );
+					weather.yesterdayPrecip = yesterdayPrecip;
+					weather.currentPrecip = currentPrecip;
+					weather.forecastPrecip = parseFloat( forecastData.daily.data[0].precipIntensity ) * 24;
+					weather.precip = ( currentPrecip > 0 ? currentPrecip : 0) + ( yesterdayPrecip > 0 ? yesterdayPrecip : 0);
+					//weather.description = data.list[ 0 ].weather[ 0 ].description;
+					weather.icon = forecastData.currently.icon || "clear-day";
+					weather.solar = parseInt( forecastData.currently.uvIndex );
+					weather.source = "darksky";
+					weather.forecast = [];
+
+					callback ( weather );
+				} );
 			} );
 		} );
 	} );
@@ -163,6 +164,7 @@ function getOWMWeatherData( location, callback ) {
 			weather.precip = ( data.list[ 0 ].rain ? parseFloat( data.list[ 0 ].rain || 0 ) : 0 ) / 25.4;
 			weather.description = data.list[ 0 ].weather[ 0 ].description;
 			weather.icon = data.list[ 0 ].weather[ 0 ].icon;
+			weather.source = "openweathermaps"
 			weather.forecast = [];
 
 			for ( var index = 0; index < data.list.length; index++ ) {
@@ -182,6 +184,7 @@ function getOWMWeatherData( location, callback ) {
 
 // Calculate timezone and sun rise/set information
 function getTimeData( location, callback ) {
+
 	var timezone = moment().tz( geoTZ( location[ 0 ], location[ 1 ] ) ).utcOffset();
 	var tzOffset = getTimezone( timezone, "minutes" );
 
@@ -294,7 +297,7 @@ exports.showWeatherData = function( req, res ) {
 
 		// Provide support for Dark Sky weather data
 		if ( darkSkyKey ) {	
-			
+
 			getDarkSkyData( location, darkSkyKey, function( data ) {
 				data.location = location;
 				res.json( data );
@@ -319,10 +322,23 @@ exports.showWeatherData = function( req, res ) {
 			}
 
 			location = result;
-			getOWMWeatherData( location, function( data ) {
-				data.location = location;
-				res.json( data );
-			} );
+
+			// Provide support for Dark Sky weather data
+			if ( darkSkyKey ) {	
+				
+				getDarkSkyData( location, darkSkyKey, function( data ) {
+					data.location = location;
+					res.json( data );
+				} );
+				
+			} else {	
+
+				// Continue with the weather request
+				getOWMWeatherData( location, function( data ) {
+					data.location = location;
+					res.json( data );
+				} );
+			}
 		} );
     }
 };
@@ -458,7 +474,18 @@ exports.getWeather = function( req, res ) {
 			}
 
 			location = result;
-			getOWMWeatherData( location, finishRequest );
+
+			// Provide support for Dark Sky weather data
+			if ( darkSkyKey ) {	
+				
+				getDarkSkyData( location, darkSkyKey, finishRequest );
+				
+			} else {
+				
+				// Continue with the weather request
+				getOWMWeatherData( location, finishRequest );
+			}			
+
 		} );
     }
 };
