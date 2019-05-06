@@ -212,6 +212,7 @@ function getDSWeatherData( location, darkSkyKey, callback ) {
 					weather.forecastPrecip = parseFloat( forecastData.daily.data[0].precipIntensity ) * 24;
 					weather.precip = ( currentPrecip > 0 ? currentPrecip : 0) + ( yesterdayPrecip > 0 ? yesterdayPrecip : 0);
 					weather.icon = forecastData.currently.icon || "clear-day";
+					weather.description = forecastData.currently.summary || "";
 					weather.solar = parseInt( forecastData.currently.uvIndex );
 					weather.forecast = [];
 
@@ -222,6 +223,7 @@ function getDSWeatherData( location, darkSkyKey, callback ) {
 							precip: parseFloat( forecastData.daily.data[ index ].precipIntensity * 24),
 							date: parseInt( forecastData.daily.data[ index ].time ),
 							icon: forecastData.daily.data[ index ].icon,
+							description: forecastData.daily.data[ index ].summary,
 						} );
 					}
 					weather.source = "darksky";
