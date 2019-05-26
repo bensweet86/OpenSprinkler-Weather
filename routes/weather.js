@@ -135,7 +135,7 @@ function getDSWateringData( location, darkSkyKey, callback ) {
 					weather.precip = ( currentPrecip > 0 ? currentPrecip : 0) + ( yesterdayPrecip > 0 ? yesterdayPrecip : 0);
 					weather.icon = forecastData.currently.icon || "clear-day";
 					weather.solar = parseInt( forecastData.currently.uvIndex );
-					weather.raining = ( forecastData.currently.icon = "rain" ? true : false);
+					weather.raining = ( forecastData.currently.icon === "rain" ? true : false);
 					weather.source = "darksky";
 
 					callback ( weather );

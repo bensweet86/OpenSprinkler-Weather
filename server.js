@@ -6,7 +6,8 @@ var express		= require( "express" ),
 	app			= express();
 
 if ( !process.env.HOST || !process.env.PORT ) {
-	require( "dotenv" );
+	const dotenv = require( "dotenv" );
+	dotenv.config();
 	host = process.env.HOST || host;
 	port = process.env.PORT || port;
 }
