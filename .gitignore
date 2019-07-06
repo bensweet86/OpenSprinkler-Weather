@@ -3,9 +3,16 @@ node_modules
 .env
 coverage/*
 npm-debug.log
-.vscode
-
-# Elastic Beanstalk Files
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
+.idea
+js
+weather.zip
+routes/adjustmentMethods/ZimmermanAdjustmentMethod.js
+routes/adjustmentMethods/AdjustmentMethod.js
+routes/adjustmentMethods/ManualAdjustmentMethod.js
+routes/adjustmentMethods/RainDelayAdjustmentMethod.js
+routes/weatherProviders/WeatherProvider.js
+server.js
+types.js
+routes/weatherProviders/local.js
+routes/weatherProviders/OWM.js
+routes/weatherProviders/DarkSky.js
