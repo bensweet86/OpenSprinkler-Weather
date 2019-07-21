@@ -5,13 +5,15 @@ import * as SunCalc from "suncalc";
 import * as moment from "moment-timezone";
 import * as geoTZ from "geo-tz";
 
-import { GeoCoordinates, TimeData, WateringData, WeatherData } from "../types";
+import { BaseWateringData, GeoCoordinates, PWS, TimeData, WeatherData } from "../types";
 import { WeatherProvider } from "./weatherProviders/WeatherProvider";
 import { AdjustmentMethod, AdjustmentMethodResponse, AdjustmentOptions } from "./adjustmentMethods/AdjustmentMethod";
 import ManualAdjustmentMethod from "./adjustmentMethods/ManualAdjustmentMethod";
 import ZimmermanAdjustmentMethod from "./adjustmentMethods/ZimmermanAdjustmentMethod";
 import RainDelayAdjustmentMethod from "./adjustmentMethods/RainDelayAdjustmentMethod";
-const weatherProvider: WeatherProvider = new ( require("./weatherProviders/" + ( process.env.WEATHER_PROVIDER || "OWM" ) ).default )();
+import WateringScaleCache, { CachedScale } from "../WateringScaleCache";
+const WEATHER_PROVIDER: WeatherProvider = new ( require("./weatherProviders/" + ( process.env.WEATHER_PROVIDER || "OWM" ) ).default )();
+const PWS_WEATHER_PROVIDER: WeatherProvider = new ( require("./weatherProviders/" + ( process.env.PWS_WEATHER_PROVIDER || "WUnderground" ) ).default )();
 
 // Define regex filters to match against location
 const filters = {
@@ -29,6 +31,8 @@ const ADJUSTMENT_METHOD: { [ key: number ] : AdjustmentMethod } = {
 	2: RainDelayAdjustmentMethod
 };
 
+const cache = new WateringScaleCache();
+
 /**
  * Resolves a location description to geographic coordinates.
  * @param location A partial zip/city/country or a coordinate pair.
@@ -42,7 +46,7 @@ async function resolveCoordinates( location: string ): Promise< GeoCoordinates >
 	}
 
 	if ( filters.pws.test( location ) ) {
-		throw "Weather Underground is discontinued";
+		throw "PWS ID must be specified in the pws parameter.";
 	} else if ( filters.gps.test( location ) ) {
 		const split: string[] = location.split( "," );
 		return [ parseFloat( split[ 0 ] ), parseFloat( split[ 1 ] ) ];
@@ -121,7 +125,7 @@ function getTimeData( coordinates: GeoCoordinates ): TimeData {
  * @param weather Watering data to use to determine if any restrictions apply.
  * @return A boolean indicating if the watering level should be set to 0% due to a restriction.
  */
-function checkWeatherRestriction( adjustmentValue: number, weather: WateringData ): boolean {
+function checkWeatherRestriction( adjustmentValue: number, weather: BaseWateringData ): boolean {
 
 	const californiaRestriction = ( adjustmentValue >> 7 ) & 1;
 
@@ -155,7 +159,7 @@ export const getWeatherData = async function( req: express.Request, res: express
 	const timeData: TimeData = getTimeData( coordinates );
 	let weatherData: WeatherData;
 	try {
-		weatherData = await weatherProvider.getWeatherData( coordinates, key );
+		weatherData = await WEATHER_PROVIDER.getWeatherData( coordinates, key );
 	} catch ( err ) {
 		res.send( "Error: " + err );
 		return;
@@ -212,56 +216,111 @@ export const getWateringData = async function( req: express.Request, res: expres
 		return;
 	}
 
-	// Continue with the weather request
 	let timeData: TimeData = getTimeData( coordinates );
-	let wateringData: WateringData;
-	if ( adjustmentMethod !== ManualAdjustmentMethod || checkRestrictions ) {
-		try {
-			wateringData = await weatherProvider.getWateringData( coordinates, key );
-		} catch ( err ) {
-			res.send( "Error: " + err );
+
+	// Parse the PWS information.
+	let pws: PWS | undefined = undefined;
+	if ( adjustmentOptions.pws ) {
+		if ( !adjustmentOptions.key ) {
+			res.send("Error: An API key must be provided when using a PWS.");
 			return;
 		}
-	}
 
-	let adjustmentMethodResponse: AdjustmentMethodResponse;
-	try {
-		adjustmentMethodResponse = await adjustmentMethod.calculateWateringScale(
-			adjustmentOptions, wateringData, coordinates, weatherProvider
-		);
-	} catch ( err ) {
-		if ( typeof err != "string" ) {
-			/* If an error  under expoccursected circumstances (e.g. required optional fields from a weather API are
-			missing), an AdjustmentOption must throw a string. If a non-string error is caught, it is likely an Error
-			thrown by the JS engine due to unexpected circumstances. The user should not be shown the error message
-			since it may contain sensitive information. */
-			res.send( "Error: an unexpected error occurred." );
-			console.error( `An unexpected error occurred for ${ req.url }: `, err );
-		} else {
-			res.send( "Error: " + err );
+		const idMatch = adjustmentOptions.pws.match( /^pws:([a-zA-Z\d]+)$/ );
+		const pwsId = idMatch ? idMatch[ 1 ] : undefined;
+		const keyMatch = adjustmentOptions.key.match( /^[a-f\d]{32}$/ );
+		const apiKey = keyMatch ? keyMatch[ 0 ] : undefined;
+
+		// Make sure that the PWS ID and API key look valid.
+		if ( !pwsId ) {
+			res.send("Error: PWS ID does not appear to be valid.");
+			return;
+		}
+		if ( !apiKey ) {
+			res.send("Error: PWS API key does not appear to be valid.");
+			return;
 		}
 
-		return;
+		pws = { id: pwsId, apiKey: apiKey };
 	}
 
-	let scale = adjustmentMethodResponse.scale;
-	if ( wateringData ) {
-		// Check for any user-set restrictions and change the scale to 0 if the criteria is met
-		if ( checkWeatherRestriction( req.params[ 0 ], wateringData ) ) {
-			scale = 0;
-		}
-	}
+	const weatherProvider = pws ? PWS_WEATHER_PROVIDER : WEATHER_PROVIDER;
 
 	const data = {
-		scale:		scale,
-		rd:			adjustmentMethodResponse.rainDelay,
+		scale:		undefined,
+		rd:			undefined,
 		tz:			getTimezone( timeData.timezone, undefined ),
 		sunrise:	timeData.sunrise,
 		sunset:		timeData.sunset,
 		eip:		ipToInt( remoteAddress ),
-		rawData:	adjustmentMethodResponse.rawData,
-		error:		adjustmentMethodResponse.errorMessage
+		rawData:	undefined,
+		error:		undefined
 	};
+
+	let cachedScale: CachedScale;
+	if ( weatherProvider.shouldCacheWateringScale() ) {
+		cachedScale = cache.getWateringScale( req.params[ 0 ], coordinates, pws, adjustmentOptions );
+	}
+
+	if ( cachedScale ) {
+		// Use the cached data if it exists.
+		data.scale = cachedScale.scale;
+		data.rawData = cachedScale.rawData;
+		data.rd = cachedScale.rainDelay;
+	} else {
+		// Calculate the watering scale if it wasn't found in the cache.
+		let adjustmentMethodResponse: AdjustmentMethodResponse;
+		try {
+			adjustmentMethodResponse = await adjustmentMethod.calculateWateringScale(
+				adjustmentOptions, coordinates, weatherProvider, pws
+			);
+		} catch ( err ) {
+			if ( typeof err != "string" ) {
+				/* If an error occurs under expected circumstances (e.g. required optional fields from a weather API are
+				missing), an AdjustmentOption must throw a string. If a non-string error is caught, it is likely an Error
+				thrown by the JS engine due to unexpected circumstances. The user should not be shown the error message
+				since it may contain sensitive information. */
+				res.send( "Error: an unexpected error occurred." );
+				console.error( `An unexpected error occurred for ${ req.url }: `, err );
+			} else {
+				res.send( "Error: " + err );
+			}
+
+			return;
+		}
+
+		data.scale = adjustmentMethodResponse.scale;
+		data.error = adjustmentMethodResponse.errorMessage;
+		data.rd = adjustmentMethodResponse.rainDelay;
+		data.rawData = adjustmentMethodResponse.rawData;
+
+		if ( checkRestrictions ) {
+			let wateringData: BaseWateringData = adjustmentMethodResponse.wateringData;
+			// Fetch the watering data if the AdjustmentMethod didn't fetch it and restrictions are being checked.
+			if ( checkRestrictions && !wateringData ) {
+				try {
+					wateringData = await weatherProvider.getWateringData( coordinates );
+				} catch ( err ) {
+					res.send( "Error: " + err );
+					return;
+				}
+			}
+
+			// Check for any user-set restrictions and change the scale to 0 if the criteria is met
+			if ( checkWeatherRestriction( req.params[ 0 ], wateringData ) ) {
+				data.scale = 0;
+			}
+		}
+
+		// Cache the watering scale if caching is enabled and no error occurred.
+		if ( weatherProvider.shouldCacheWateringScale() && !data.error ) {
+			cache.storeWateringScale( req.params[ 0 ], coordinates, pws, adjustmentOptions, {
+				scale: data.scale,
+				rawData: data.rawData,
+				rainDelay: data.rd
+			} );
+		}
+	}
 
 	// Return the response to the client in the requested format
 	if ( outputFormat === "json" ) {

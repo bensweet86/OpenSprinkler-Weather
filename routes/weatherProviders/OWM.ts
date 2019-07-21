@@ -1,12 +1,21 @@
-import { GeoCoordinates, WateringData, WeatherData } from "../../types";
+import { GeoCoordinates, WeatherData, ZimmermanWateringData } from "../../types";
 import { httpJSONRequest } from "../weather";
 import { WeatherProvider } from "./WeatherProvider";
 
 export default class OWMWeatherProvider extends WeatherProvider {
 
-	public async getWateringData( coordinates: GeoCoordinates ): Promise< WateringData > {
-		const OWM_API_KEY = process.env.OWM_API_KEY,
-			forecastUrl = "http://api.openweathermap.org/data/2.5/forecast?appid=" + OWM_API_KEY + "&units=imperial&lat=" + coordinates[ 0 ] + "&lon=" + coordinates[ 1 ];
+	private readonly API_KEY: string;
+
+	public constructor() {
+		super();
+		this.API_KEY = process.env.OWM_API_KEY;
+		if (!this.API_KEY) {
+			throw "OWM_API_KEY environment variable is not defined.";
+		}
+	}
+
+	public async getWateringData( coordinates: GeoCoordinates ): Promise< ZimmermanWateringData > {
+		const forecastUrl = `http://api.openweathermap.org/data/2.5/forecast?appid=${ this.API_KEY }&units=imperial&lat=${ coordinates[ 0 ] }&lon=${ coordinates[ 1 ] }`;
 
 		// Perform the HTTP request to retrieve the weather data
 		let forecast;
@@ -37,20 +46,19 @@ export default class OWMWeatherProvider extends WeatherProvider {
 			weatherProvider: "OWM",
 			temp: totalTemp / periods,
 			humidity: totalHumidity / periods,
-			minTemp: null,
-			maxTemp: null,
-			yesterdayPrecip: null,
-			currentPrecip: null,
-			forecastPrecip: null,
+			minTemp: undefined,
+			maxTemp: undefined,
+			yesterdayPrecip: undefined,
+			currentPrecip: undefined,
+			forecastPrecip: undefined,
 			precip: totalPrecip / 25.4,
 			raining: ( forecast.list[ 0 ].rain ? ( parseFloat( forecast.list[ 0 ].rain[ "3h" ] || 0 ) > 0 ) : false )
 		};
 	}
 
 	public async getWeatherData( coordinates: GeoCoordinates ): Promise< WeatherData > {
-		const OWM_API_KEY = process.env.OWM_API_KEY,
-			currentUrl = "http://api.openweathermap.org/data/2.5/weather?appid=" + OWM_API_KEY + "&units=imperial&lat=" + coordinates[ 0 ] + "&lon=" + coordinates[ 1 ],
-			forecastDailyUrl = "http://api.openweathermap.org/data/2.5/forecast/daily?appid=" + OWM_API_KEY + "&units=imperial&lat=" + coordinates[ 0 ] + "&lon=" + coordinates[ 1 ];
+		const currentUrl = `http://api.openweathermap.org/data/2.5/weather?appid=${ this.API_KEY }&units=imperial&lat=${ coordinates[ 0 ] }&lon=${ coordinates[ 1 ] }`,
+			forecastDailyUrl = `http://api.openweathermap.org/data/2.5/forecast/daily?appid=${ this.API_KEY }&units=imperial&lat=${ coordinates[ 0 ] }&lon=${ coordinates[ 1 ] }`;
 
 		let current, forecast;
 		try {
@@ -77,9 +85,9 @@ export default class OWMWeatherProvider extends WeatherProvider {
 			city: forecast.city.name,
 			minTemp: parseInt( forecast.list[ 0 ].temp.min ),
 			maxTemp: parseInt( forecast.list[ 0 ].temp.max ),
-			yesterdayPrecip: null,
-			currentPrecip: null,
-			forecastPrecip: null,
+			yesterdayPrecip: undefined,
+			currentPrecip: undefined,
+			forecastPrecip: undefined,
 			precip: ( forecast.list[ 0 ].rain ? parseFloat( forecast.list[ 0 ].rain || 0 ) : 0 ) / 25.4,
 			forecast: []
 		};
@@ -89,7 +97,7 @@ export default class OWMWeatherProvider extends WeatherProvider {
 				temp_min: parseInt( forecast.list[ index ].temp.min ),
 				temp_max: parseInt( forecast.list[ index ].temp.max ),
 				date: parseInt( forecast.list[ index ].dt ),
-				precip: null,
+				precip: undefined,
 				icon: forecast.list[ index ].weather[ 0 ].icon,
 				description: forecast.list[ index ].weather[ 0 ].description
 			} );

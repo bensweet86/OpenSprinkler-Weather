@@ -1,15 +1,17 @@
-import { GeoCoordinates, WateringData, WeatherData } from "../../types";
+import { GeoCoordinates, PWS, WeatherData, ZimmermanWateringData } from "../../types";
 
 export class WeatherProvider {
 	/**
-	 * Retrieves weather data necessary for watering level calculations.
+	 * Retrieves weather data necessary for Zimmerman watering level calculations.
 	 * @param coordinates The coordinates to retrieve the watering data for.
 	 * @param key Optional key to be used for the endpoint API provided with Weather API request
-	 * @return A Promise that will be resolved with the WateringData if it is successfully retrieved,
-	 * or rejected with an error message if an error occurs while retrieving the WateringData or the WeatherProvider
+	 * @param pws The PWS to retrieve the weather from, or undefined if a PWS should not be used. If the implementation
+	 * of this method does not have PWS support, this parameter may be ignored and coordinates may be used instead.
+	 * @return A Promise that will be resolved with the ZimmermanWateringData if it is successfully retrieved,
+	 * or rejected with an error message if an error occurs while retrieving the ZimmermanWateringData or the WeatherProvider
 	 * does not support this method.
 	 */
-	getWateringData( coordinates : GeoCoordinates, key: String ): Promise< WateringData > {
+	getWateringData( coordinates: GeoCoordinates, key: String, pws?: PWS ): Promise< ZimmermanWateringData > {
 		throw "Selected WeatherProvider does not support getWateringData";
 	}
 
@@ -23,5 +25,14 @@ export class WeatherProvider {
 	 */
 	getWeatherData( coordinates : GeoCoordinates, key: String  ): Promise< WeatherData > {
 		throw "Selected WeatherProvider does not support getWeatherData";
+	}
+
+	/**
+	 * Returns a boolean indicating if watering scales calculated using data from this WeatherProvider should be cached
+	 * until the end of the day in timezone the data was for.
+	 * @return a boolean indicating if watering scales calculated using data from this WeatherProvider should be cached.
+	 */
+	shouldCacheWateringScale(): boolean {
+		return false;
 	}
 }
