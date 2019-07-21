@@ -4,7 +4,7 @@ import { httpJSONRequest } from "../weather";
 
 export default class WUnderground extends WeatherProvider {
 
-	async getWateringData( coordinates: GeoCoordinates, pws?: PWS ): Promise< ZimmermanWateringData > {
+	async getWateringData( coordinates: GeoCoordinates, key?: String, pws?: PWS ): Promise< ZimmermanWateringData > {
 		if ( !pws ) {
 			throw "WUnderground WeatherProvider requires a PWS to be specified.";
 		}

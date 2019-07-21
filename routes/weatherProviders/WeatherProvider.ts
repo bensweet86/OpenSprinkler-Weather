@@ -11,7 +11,7 @@ export class WeatherProvider {
 	 * or rejected with an error message if an error occurs while retrieving the ZimmermanWateringData or the WeatherProvider
 	 * does not support this method.
 	 */
-	getWateringData( coordinates: GeoCoordinates, key: String, pws?: PWS ): Promise< ZimmermanWateringData > {
+	getWateringData( coordinates: GeoCoordinates, key?: String, pws?: PWS ): Promise< ZimmermanWateringData > {
 		throw "Selected WeatherProvider does not support getWateringData";
 	}
 

@@ -16,9 +16,10 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 		}
 	}
 
-	public async getWateringData( coordinates: GeoCoordinates, key: String ): Promise< ZimmermanWateringData > {
+	public async getWateringData( coordinates: GeoCoordinates, key?: String ): Promise< ZimmermanWateringData > {
 		// The Unix timestamp of 24 hours ago.
 		const yesterdayTimestamp: number = moment().subtract( 1, "day" ).unix();
+		const todayTimestamp: number = moment().unix();
 
 		const DARKSKY_API_KEY = key || process.env.DARKSKY_API_KEY,
 			forecastUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] }?exclude=minutely,alerts,flags`,
