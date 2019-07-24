@@ -16,3 +16,7 @@ types.js
 routes/weatherProviders/local.js
 routes/weatherProviders/OWM.js
 routes/weatherProviders/DarkSky.js
+baselineEToData/*.bin
+baselineEToData/*.png
+baselineEToData/*.tif
+baselineEToData/dataPreparer[.exe]
