@@ -6,16 +6,6 @@ npm-debug.log
 .idea
 js
 weather.zip
-routes/adjustmentMethods/ZimmermanAdjustmentMethod.js
-routes/adjustmentMethods/AdjustmentMethod.js
-routes/adjustmentMethods/ManualAdjustmentMethod.js
-routes/adjustmentMethods/RainDelayAdjustmentMethod.js
-routes/weatherProviders/WeatherProvider.js
-server.js
-types.js
-routes/weatherProviders/local.js
-routes/weatherProviders/OWM.js
-routes/weatherProviders/DarkSky.js
 baselineEToData/*.bin
 baselineEToData/*.png
 baselineEToData/*.tif
