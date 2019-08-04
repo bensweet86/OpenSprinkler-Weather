@@ -185,7 +185,7 @@ export const getWateringData = async function( req: express.Request, res: expres
 		checkRestrictions: boolean			= ( ( req.params[ 0 ] >> 7 ) & 1 ) > 0,
 		adjustmentOptionsString: string		= getParameter(req.query.wto),
 		location: string | GeoCoordinates	= getParameter(req.query.loc),
-		key: string					= getParameter(req.query.dskey),
+		key: string							= getParameter(req.query.dskey),
 		outputFormat: string				= getParameter(req.query.format),
 		remoteAddress: string				= getParameter(req.headers[ "x-forwarded-for" ]) || req.connection.remoteAddress,
 		adjustmentOptions: AdjustmentOptions;
@@ -275,7 +275,7 @@ export const getWateringData = async function( req: express.Request, res: expres
 		let adjustmentMethodResponse: AdjustmentMethodResponse;
 		try {
 			adjustmentMethodResponse = await adjustmentMethod.calculateWateringScale(
-				adjustmentOptions, coordinates, weatherProvider, pws
+				adjustmentOptions, coordinates, weatherProvider, pws, key
 			);
 		} catch ( err ) {
 			if ( typeof err != "string" ) {
@@ -302,7 +302,7 @@ export const getWateringData = async function( req: express.Request, res: expres
 			// Fetch the watering data if the AdjustmentMethod didn't fetch it and restrictions are being checked.
 			if ( checkRestrictions && !wateringData ) {
 				try {
-					wateringData = await weatherProvider.getWateringData( coordinates );
+					wateringData = await weatherProvider.getWateringData( coordinates, key );
 				} catch ( err ) {
 					res.send( "Error: " + err );
 					return;

@@ -12,9 +12,10 @@ async function calculateZimmermanWateringScale(
 	adjustmentOptions: ZimmermanAdjustmentOptions,
 	coordinates: GeoCoordinates,
 	weatherProvider: WeatherProvider,
-	pws?: PWS
+	pws?: PWS,
+	key?: string
 ): Promise< AdjustmentMethodResponse > {
-	const wateringData: ZimmermanWateringData = await weatherProvider.getWateringData( coordinates, undefined, pws );
+	const wateringData: ZimmermanWateringData = await weatherProvider.getWateringData( coordinates, key, pws );
 
 	// Don't water if it is currently raining.
 	if ( wateringData && wateringData.raining ) {

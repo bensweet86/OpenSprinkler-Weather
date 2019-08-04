@@ -9,13 +9,14 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 
 	private readonly API_KEY: string;
 
+	/* Disabled to support API Key from WebUI
 	public constructor() {
 		super();
 		this.API_KEY = process.env.DARKSKY_API_KEY;
 		if (!this.API_KEY) {
 			throw "DARKSKY_API_KEY environment variable is not defined.";
 		}
-	}
+	}*/
 
 	public async getWateringData( coordinates: GeoCoordinates, key?: String ): Promise< ZimmermanWateringData > {
 		// The Unix timestamp of 24 hours ago.
@@ -24,7 +25,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 
 		const DARKSKY_API_KEY = key || process.env.DARKSKY_API_KEY,
 			forecastUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] }?exclude=minutely,alerts,flags`,
-			yesterdayUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] },${ yesterdayTimestamp }?exclude=currently,minutely,daily,alerts,flags`,
+			yesterdayUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] },${ yesterdayTimestamp }?exclude=currently,minutely,alerts,flags`,
 			todayUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] },${ todayTimestamp }?exclude=currently,minutely,daily,alerts,flags`;
 
 		let yesterdayData, todayData, forecastData;
@@ -37,7 +38,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 			throw "An error occurred while retrieving weather information from Dark Sky."
 		}
 
-		if ( !yesterdayData.hourly || !yesterdayData.hourly.data ) {
+		if ( !todayData || !todayData.hourly || !todayData.hourly.data || !yesterdayData || !yesterdayData.hourly || !yesterdayData.hourly.data || !yesterdayData.daily || !yesterdayData.daily.data || !forecastData || !forecastData.currently || !forecastData.daily || !forecastData.daily.data) {
 			throw "Necessary field(s) were missing from weather information returned by Dark Sky.";
 		}
 
@@ -47,14 +48,14 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 			index: number;
 
 		for ( index = 0; index < maxCount; index++ ) {
-			
+
 			// Only use current day rainfall data for the hourly readings prior to the current hour
 			if ( todayData.hourly.data[index].time <= ( forecastData.currently.time - 3600 ) ) {
 				currentPrecip += parseFloat( todayData.hourly.data[index].precipIntensity );
 			}
-			
+
 		}
-		
+
 		for ( index = 0; index < maxCount; index++ ) {
 			yesterdayPrecip += parseFloat( yesterdayData.hourly.data[index].precipIntensity );
 		}
@@ -92,18 +93,18 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 			currentPrecip: currentPrecip,
 			forecastPrecip: parseFloat( forecastData.daily.data[0].precipIntensity ) * 24,
 			precip: ( currentPrecip > 0 ? currentPrecip : 0) + ( yesterdayPrecip > 0 ? yesterdayPrecip : 0),
-			raining: ( forecastData.currently.icon = "rain" ? true : false)
+			raining: ( forecastData.currently.icon == "rain" ? true : false)
 		};
 	}
 
-	public async getWeatherData( coordinates: GeoCoordinates, key: String ): Promise< WeatherData > {
+	public async getWeatherData( coordinates: GeoCoordinates, key?: String ): Promise< WeatherData > {
 		// The Unix timestamp of 24 hours ago.
 		const yesterdayTimestamp: number = moment().subtract( 1, "day" ).unix();
 		const todayTimestamp: number = moment().unix();
-		
+
 		const DARKSKY_API_KEY = key || process.env.DARKSKY_API_KEY,
 			forecastUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] }?exclude=minutely,alerts,flags`,
-			yesterdayUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] },${ yesterdayTimestamp }?exclude=currently,minutely,daily,alerts,flags`,
+			yesterdayUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] },${ yesterdayTimestamp }?exclude=currently,minutely,alerts,flags`,
 			todayUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] },${ todayTimestamp }?exclude=currently,minutely,daily,alerts,flags`;
 
 		let yesterdayData, todayData, forecastData;
@@ -124,16 +125,16 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 			yesterdayPrecip:number = 0,
 			maxCount:number = 24,
 			index: number;
-	
+
 		for ( index = 0; index < maxCount; index++ ) {
-			
+
 			// Only use current day rainfall data for the hourly readings prior to the current hour
 			if ( todayData.hourly.data[index].time <= ( forecastData.currently.time - 3600 ) ) {
 				currentPrecip += parseFloat( todayData.hourly.data[index].precipIntensity );
 			}
-			
+
 		}
-		
+
 		for ( index = 0; index < maxCount; index++ ) {
 			yesterdayPrecip += parseFloat( yesterdayData.hourly.data[index].precipIntensity );
 		}

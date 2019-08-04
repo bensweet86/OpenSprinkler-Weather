@@ -20,7 +20,8 @@ export interface AdjustmentMethod {
 		adjustmentOptions: AdjustmentOptions,
 		coordinates: GeoCoordinates,
 		weatherProvider: WeatherProvider,
-		pws?: PWS
+		pws?: PWS,
+		key?: string
 	): Promise< AdjustmentMethodResponse >;
 }
 
