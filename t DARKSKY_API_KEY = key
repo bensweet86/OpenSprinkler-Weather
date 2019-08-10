@@ -1,0 +1,334 @@
+[1mdiff --git a/README.md b/README.md[m
+[1mindex 5e54856..96e19ea 100644[m
+[1m--- a/README.md[m
+[1m+++ b/README.md[m
+[36m@@ -1,6 +1,6 @@[m
+[31m-<img align="left" height="150" src="http://albahra.com/opensprinkler/icon-new.png"><h3>&nbsp;OpenSprinkler Weather Service [![GitHub version](https://img.shields.io/github/package-json/v/opensprinkler/opensprinkler-weather.svg)](https://github.com/OpenSprinkler/OpenSprinkler-Weather)</h3>[m
+[31m-&nbsp;[![Build Status](https://api.travis-ci.org/OpenSprinkler/OpenSprinkler-Weather.svg?branch=master)](https://travis-ci.org/) [![devDependency Status](https://david-dm.org/OpenSprinkler/OpenSprinkler-Weather/status.svg)](https://david-dm.org/OpenSprinkler/OpenSprinkler-Weather#info=dependencies)<br>[m
+[31m-&nbsp;[Official Site][official] | [Support][help] | [Changelog][changelog][m
+[32m+[m[32m<img align="left" height="150" src="http://albahra.com/opensprinkler/icon-new.png"><h3>&nbsp;OpenSprinkler Weather Service [DarkSky Mod] [![GitHub version](https://badge.fury.io/gh/bensweet86%2FOpenSprinkler-Weather.svg)](https://badge.fury.io/gh/bensweet86%2FOpenSprinkler-Weather)</h3>[m
+[32m+[m[32m&nbsp;[![Build Status](https://api.travis-ci.org/bensweet86/OpenSprinkler-Weather.svg?branch=master)](https://travis-ci.org/) [![devDependency Status](https://david-dm.org/bensweet86/OpenSprinkler-Weather.svg)](https://david-dm.org/bensweet86/OpenSprinkler-Weather#info=dependencies)[m[41m  [m
+[32m+[m[32m&nbsp;[Official Site][official] | [Support][help] | [Changelog][changelog][m[41m  [m
+ <br>[m
+ This script is used by OpenSprinkler Unified Firmware to update the water level of the device. It also provides timezone information based on user location along with other local information (sunrise, sunset, daylights saving time, etc).[m
+ [m
+[36m@@ -59,4 +59,4 @@[m [mFor more information on the "WeeWX Solution" click [here](docs/weewx.md)[m
+ **4 ) Solutions for specific PWS (provided by OpenSprinkler Forum members)**[m
+ [m
+ - Davis Vantage: a solution for this PWS has been kindly provided by @rmloeb [here](docs/davis-vantage.md)[m
+[31m-- Netatmo: instructions for configuring this PWS have been greatfully provided by @franzstein [here](docs/netatmo.md)[m
+\ No newline at end of file[m
+[32m+[m[32m- Netatmo: instructions for configuring this PWS have been greatfully provided by @franzstein [here](docs/netatmo.md)[m
+[1mdiff --git a/package-lock.json b/package-lock.json[m
+[1mindex 042b6ac..dcd8a6a 100644[m
+[1m--- a/package-lock.json[m
+[1m+++ b/package-lock.json[m
+[36m@@ -1788,6 +1788,11 @@[m
+       "integrity": "sha1-k0EP0hsAlzUVH4howvJx80J+I/0=",[m
+       "dev": true[m
+     },[m
+[32m+[m[32m    "http": {[m
+[32m+[m[32m      "version": "0.0.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/http/-/http-0.0.0.tgz",[m
+[32m+[m[32m      "integrity": "sha1-huYybSnF0Dnen6xYSkVon5KfT3I="[m
+[32m+[m[32m    },[m
+     "http-errors": {[m
+       "version": "1.6.3",[m
+       "resolved": "https://registry.npmjs.org/http-errors/-/http-errors-1.6.3.tgz",[m
+[1mdiff --git a/package.json b/package.json[m
+[1mindex 7acfdd5..e9ef064 100644[m
+[1m--- a/package.json[m
+[1m+++ b/package.json[m
+[36m@@ -17,6 +17,7 @@[m
+     "dotenv": "^8.0.0",[m
+     "express": "^4.16.4",[m
+     "geo-tz": "^5.0.4",[m
+[32m+[m[32m    "http": "0.0.0",[m
+     "mockdate": "^2.0.2",[m
+     "moment-timezone": "^0.5.25",[m
+     "node-cache": "^4.2.0",[m
+[1mdiff --git a/routes/adjustmentMethods/AdjustmentMethod.ts b/routes/adjustmentMethods/AdjustmentMethod.ts[m
+[1mindex 9b37574..318680b 100644[m
+[1m--- a/routes/adjustmentMethods/AdjustmentMethod.ts[m
+[1m+++ b/routes/adjustmentMethods/AdjustmentMethod.ts[m
+[36m@@ -20,7 +20,8 @@[m [mexport interface AdjustmentMethod {[m
+ 		adjustmentOptions: AdjustmentOptions,[m
+ 		coordinates: GeoCoordinates,[m
+ 		weatherProvider: WeatherProvider,[m
+[31m-		pws?: PWS[m
+[32m+[m		[32mpws?: PWS,[m
+[32m+[m		[32mkey?: string[m
+ 	): Promise< AdjustmentMethodResponse >;[m
+ }[m
+ [m
+[1mdiff --git a/routes/adjustmentMethods/RainDelayAdjustmentMethod.ts b/routes/adjustmentMethods/RainDelayAdjustmentMethod.ts[m
+[1mindex bfa1348..5c306a0 100644[m
+[1m--- a/routes/adjustmentMethods/RainDelayAdjustmentMethod.ts[m
+[1m+++ b/routes/adjustmentMethods/RainDelayAdjustmentMethod.ts[m
+[36m@@ -6,8 +6,8 @@[m [mimport { WeatherProvider } from "../weatherProviders/WeatherProvider";[m
+ /**[m
+  * Only delays watering if it is currently raining and does not adjust the watering scale.[m
+  */[m
+[31m-async function calculateRainDelayWateringScale( adjustmentOptions: RainDelayAdjustmentOptions, coordinates: GeoCoordinates, weatherProvider: WeatherProvider ): Promise< AdjustmentMethodResponse > {[m
+[31m-	const wateringData: ZimmermanWateringData = await weatherProvider.getWateringData( coordinates );[m
+[32m+[m[32masync function calculateRainDelayWateringScale( adjustmentOptions: RainDelayAdjustmentOptions, coordinates: GeoCoordinates, weatherProvider: WeatherProvider, undefined, key?: string ): Promise< AdjustmentMethodResponse > {[m
+[32m+[m	[32mconst wateringData: ZimmermanWateringData = await weatherProvider.getWateringData( coordinates, key );[m
+ 	const raining = wateringData && wateringData.raining;[m
+ 	const d = adjustmentOptions.hasOwnProperty( "d" ) ? adjustmentOptions.d : 24;[m
+ 	return {[m
+[1mdiff --git a/routes/adjustmentMethods/ZimmermanAdjustmentMethod.ts b/routes/adjustmentMethods/ZimmermanAdjustmentMethod.ts[m
+[1mindex e8fea63..58679b1 100644[m
+[1m--- a/routes/adjustmentMethods/ZimmermanAdjustmentMethod.ts[m
+[1m+++ b/routes/adjustmentMethods/ZimmermanAdjustmentMethod.ts[m
+[36m@@ -12,12 +12,11 @@[m [masync function calculateZimmermanWateringScale([m
+ 	adjustmentOptions: ZimmermanAdjustmentOptions,[m
+ 	coordinates: GeoCoordinates,[m
+ 	weatherProvider: WeatherProvider,[m
+[31m-	pws?: PWS[m
+[32m+[m	[32mpws?: PWS,[m
+[32m+[m	[32mkey?: string[m
+ ): Promise< AdjustmentMethodResponse > {[m
+[31m-	const wateringData: ZimmermanWateringData = await weatherProvider.getWateringData( coordinates, pws );[m
+[32m+[m	[32mconst wateringData: ZimmermanWateringData = await weatherProvider.getWateringData( coordinates, key, pws );[m
+ [m
+[31m-	// Temporarily disabled since OWM forecast data is checking if rain is forecasted for 3 hours in the future.[m
+[31m-	/*[m
+ 	// Don't water if it is currently raining.[m
+ 	if ( wateringData && wateringData.raining ) {[m
+ 		return {[m
+[36m@@ -26,7 +25,6 @@[m [masync function calculateZimmermanWateringScale([m
+ 			wateringData: wateringData[m
+ 		}[m
+ 	}[m
+[31m-	*/[m
+ [m
+ 	const rawData = {[m
+ 		h: wateringData ? Math.round( wateringData.humidity * 100) / 100 : null,[m
+[36m@@ -53,8 +51,9 @@[m [masync function calculateZimmermanWateringScale([m
+ 	tempBase = adjustmentOptions.hasOwnProperty( "bt" ) ? adjustmentOptions.bt : tempBase;[m
+ 	precipBase = adjustmentOptions.hasOwnProperty( "br" ) ? adjustmentOptions.br : precipBase;[m
+ [m
+[31m-	let humidityFactor = ( humidityBase - wateringData.humidity ),[m
+[31m-		tempFactor = ( ( wateringData.temp - tempBase ) * 4 ),[m
+[32m+[m	[32mlet temp = ( ( wateringData.maxTemp + wateringData.minTemp ) / 2 ) || wateringData.temp,[m
+[32m+[m		[32mhumidityFactor = ( humidityBase - wateringData.humidity ),[m
+[32m+[m		[32mtempFactor = ( ( temp - tempBase ) * 4 ),[m
+ 		precipFactor = ( ( precipBase - wateringData.precip ) * 200 );[m
+ [m
+ 	// Apply adjustment options, if provided, by multiplying the percentage against the factor[m
+[1mdiff --git a/routes/weather.ts b/routes/weather.ts[m
+[1mindex fb2ffc7..856c921 100644[m
+[1m--- a/routes/weather.ts[m
+[1m+++ b/routes/weather.ts[m
+[36m@@ -146,7 +146,8 @@[m [mfunction checkWeatherRestriction( adjustmentValue: number, weather: BaseWatering[m
+ }[m
+ [m
+ export const getWeatherData = async function( req: express.Request, res: express.Response ) {[m
+[31m-	const location: string = getParameter(req.query.loc);[m
+[32m+[m	[32mconst location: string = getParameter(req.query.loc),[m
+[32m+[m		[32mkey: string = getParameter(req.query.dskey);[m
+ [m
+ 	let coordinates: GeoCoordinates;[m
+ 	try {[m
+[36m@@ -160,7 +161,7 @@[m [mexport const getWeatherData = async function( req: express.Request, res: express[m
+ 	const timeData: TimeData = getTimeData( coordinates );[m
+ 	let weatherData: WeatherData;[m
+ 	try {[m
+[31m-		weatherData = await WEATHER_PROVIDER.getWeatherData( coordinates );[m
+[32m+[m		[32mweatherData = await WEATHER_PROVIDER.getWeatherData( coordinates, key );[m
+ 	} catch ( err ) {[m
+ 		res.send( "Error: " + err );[m
+ 		return;[m
+[36m@@ -177,7 +178,6 @@[m [mexport const getWeatherData = async function( req: express.Request, res: express[m
+ // adjustment method which is encoded to also carry the watering[m
+ // restriction and therefore must be decoded[m
+ export const getWateringData = async function( req: express.Request, res: express.Response ) {[m
+[31m-[m
+ 	// The adjustment method is encoded by the OpenSprinkler firmware and must be[m
+ 	// parsed. This allows the adjustment method and the restriction type to both[m
+ 	// be saved in the same byte.[m
+[36m@@ -185,6 +185,7 @@[m [mexport const getWateringData = async function( req: express.Request, res: expres[m
+ 		checkRestrictions: boolean			= ( ( req.params[ 0 ] >> 7 ) & 1 ) > 0,[m
+ 		adjustmentOptionsString: string		= getParameter(req.query.wto),[m
+ 		location: string | GeoCoordinates	= getParameter(req.query.loc),[m
+[32m+[m		[32mkey: string							= getParameter(req.query.dskey),[m
+ 		outputFormat: string				= getParameter(req.query.format),[m
+ 		remoteAddress: string				= getParameter(req.headers[ "x-forwarded-for" ]) || req.connection.remoteAddress,[m
+ 		adjustmentOptions: AdjustmentOptions;[m
+[36m@@ -274,7 +275,7 @@[m [mexport const getWateringData = async function( req: express.Request, res: expres[m
+ 		let adjustmentMethodResponse: AdjustmentMethodResponse;[m
+ 		try {[m
+ 			adjustmentMethodResponse = await adjustmentMethod.calculateWateringScale([m
+[31m-				adjustmentOptions, coordinates, weatherProvider, pws[m
+[32m+[m				[32madjustmentOptions, coordinates, weatherProvider, pws, key[m
+ 			);[m
+ 		} catch ( err ) {[m
+ 			if ( typeof err != "string" ) {[m
+[36m@@ -301,7 +302,7 @@[m [mexport const getWateringData = async function( req: express.Request, res: expres[m
+ 			// Fetch the watering data if the AdjustmentMethod didn't fetch it and restrictions are being checked.[m
+ 			if ( checkRestrictions && !wateringData ) {[m
+ 				try {[m
+[31m-					wateringData = await weatherProvider.getWateringData( coordinates );[m
+[32m+[m					[32mwateringData = await weatherProvider.getWateringData( coordinates, key );[m
+ 				} catch ( err ) {[m
+ 					res.send( "Error: " + err );[m
+ 					return;[m
+[1mdiff --git a/routes/weatherProviders/DarkSky.ts b/routes/weatherProviders/DarkSky.ts[m
+[1mindex bb24837..ec85438 100644[m
+[1m--- a/routes/weatherProviders/DarkSky.ts[m
+[1m+++ b/routes/weatherProviders/DarkSky.ts[m
+[36m@@ -9,38 +9,63 @@[m [mexport default class DarkSkyWeatherProvider extends WeatherProvider {[m
+ [m
+ 	private readonly API_KEY: string;[m
+ [m
+[32m+[m	[32m/* Disabled to support API Key from WebUI[m
+ 	public constructor() {[m
+ 		super();[m
+ 		this.API_KEY = process.env.DARKSKY_API_KEY;[m
+ 		if (!this.API_KEY) {[m
+ 			throw "DARKSKY_API_KEY environment variable is not defined.";[m
+ 		}[m
+[31m-	}[m
+[32m+[m	[32m}*/[m
+ [m
+[31m-	public async getWateringData( coordinates: GeoCoordinates ): Promise< ZimmermanWateringData > {[m
+[32m+[m	[32mpublic async getWateringData( coordinates: GeoCoordinates, key?: String ): Promise< ZimmermanWateringData > {[m
+ 		// The Unix timestamp of 24 hours ago.[m
+ 		const yesterdayTimestamp: number = moment().subtract( 1, "day" ).unix();[m
+[32m+[m		[32mconst todayTimestamp: number = moment().unix();[m
+ [m
+[31m-		const yesterdayUrl = `https://api.darksky.net/forecast/${ this.API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] },${ yesterdayTimestamp }?exclude=currently,minutely,daily,alerts,flags`;[m
+[32m+[m		[32mconst DARKSKY_API_KEY = key || process.env.DARKSKY_API_KEY,[m
+[32m+[m			[32mforecastUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] }?exclude=minutely,alerts,flags`,[m
+[32m+[m			[32myesterdayUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] },${ yesterdayTimestamp }?exclude=currently,minutely,alerts,flags`,[m
+[32m+[m			[32mtodayUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] },${ todayTimestamp }?exclude=currently,minutely,daily,alerts,flags`;[m
+ [m
+[31m-		let yesterdayData;[m
+[32m+[m		[32mlet yesterdayData, todayData, forecastData;[m
+ 		try {[m
+ 			yesterdayData = await httpJSONRequest( yesterdayUrl );[m
+[32m+[m			[32mtodayData = await httpJSONRequest( todayUrl );[m
+[32m+[m			[32mforecastData = await httpJSONRequest( forecastUrl );[m
+ 		} catch ( err ) {[m
+ 			console.error( "Error retrieving weather information from Dark Sky:", err );[m
+ 			throw "An error occurred while retrieving weather information from Dark Sky."[m
+ 		}[m
+ [m
+[31m-		if ( !yesterdayData.hourly || !yesterdayData.hourly.data ) {[m
+[32m+[m		[32mif ( !todayData || !todayData.hourly || !todayData.hourly.data || !yesterdayData || !yesterdayData.hourly || !yesterdayData.hourly.data || !yesterdayData.daily || !yesterdayData.daily.data || !forecastData || !forecastData.currently || !forecastData.daily || !forecastData.daily.data) {[m
+ 			throw "Necessary field(s) were missing from weather information returned by Dark Sky.";[m
+ 		}[m
+ [m
+[32m+[m		[32mvar currentPrecip:number = 0,[m
+[32m+[m			[32myesterdayPrecip:number = 0,[m
+[32m+[m			[32mmaxCount:number = 24,[m
+[32m+[m			[32mindex: number;[m
+[32m+[m
+[32m+[m		[32mfor ( index = 0; index < maxCount; index++ ) {[m
+[32m+[m
+[32m+[m			[32m// Only use current day rainfall data for the hourly readings prior to the current hour[m
+[32m+[m			[32mif ( todayData.hourly.data[index].time <= ( forecastData.currently.time - 3600 ) ) {[m
+[32m+[m				[32mcurrentPrecip += parseFloat( todayData.hourly.data[index].precipIntensity );[m
+[32m+[m			[32m}[m
+[32m+[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32mfor ( index = 0; index < maxCount; index++ ) {[m
+[32m+[m			[32myesterdayPrecip += parseFloat( yesterdayData.hourly.data[index].precipIntensity );[m
+[32m+[m		[32m}[m
+[32m+[m
+ 		const samples = [[m
+ 			...yesterdayData.hourly.data[m
+ 		];[m
+ [m
+ 		// Fail if not enough data is available.[m
+[31m-		if ( samples.length !== 24 ) {[m
+[32m+[m		[32mif ( samples.length !== maxCount ) {[m
+ 			throw "Insufficient data was returned by Dark Sky.";[m
+ 		}[m
+ [m
+[36m@@ -61,50 +86,85 @@[m [mexport default class DarkSkyWeatherProvider extends WeatherProvider {[m
+ 		return {[m
+ 			weatherProvider: "DarkSky",[m
+ 			temp: totals.temp / 24,[m
+[31m-			humidity: totals.humidity / 24 * 100,[m
+[31m-			precip: totals.precip,[m
+[31m-			raining: samples[ samples.length - 1 ].precipIntensity > 0[m
+[32m+[m			[32mhumidity: parseFloat( yesterdayData.daily.data[0].humidity ) * 100,[m
+[32m+[m			[32mminTemp: parseInt( yesterdayData.daily.data[0].temperatureLow ),  //Takes logic of high during the day,[m
+[32m+[m			[32mmaxTemp: parseInt( yesterdayData.daily.data[0].temperatureHigh ), //low during the night based on DN logic[m
+[32m+[m			[32myesterdayPrecip: yesterdayPrecip,[m
+[32m+[m			[32mcurrentPrecip: currentPrecip,[m
+[32m+[m			[32mforecastPrecip: parseFloat( forecastData.daily.data[0].precipIntensity ) * 24,[m
+[32m+[m			[32mprecip: ( currentPrecip > 0 ? currentPrecip : 0) + ( yesterdayPrecip > 0 ? yesterdayPrecip : 0),[m
+[32m+[m			[32mraining: ( forecastData.currently.icon == "rain" ? true : false)[m
+ 		};[m
+ 	}[m
+ [m
+[31m-	public async getWeatherData( coordinates: GeoCoordinates ): Promise< WeatherData > {[m
+[31m-		const forecastUrl = `https://api.darksky.net/forecast/${ this.API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] }?exclude=minutely,alerts,flags`;[m
+[32m+[m	[32mpublic async getWeatherData( coordinates: GeoCoordinates, key?: String ): Promise< WeatherData > {[m
+[32m+[m		[32m// The Unix timestamp of 24 hours ago.[m
+[32m+[m		[32mconst yesterdayTimestamp: number = moment().subtract( 1, "day" ).unix();[m
+[32m+[m		[32mconst todayTimestamp: number = moment().unix();[m
+[32m+[m
+[32m+[m		[32mconst DARKSKY_API_KEY = key || process.env.DARKSKY_API_KEY,[m
+[32m+[m			[32mforecastUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] }?exclude=minutely,alerts,flags`,[m
+[32m+[m			[32myesterdayUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] },${ yesterdayTimestamp }?exclude=currently,minutely,alerts,flags`,[m
+[32m+[m			[32mtodayUrl = `https://api.darksky.net/forecast/${ DARKSKY_API_KEY }/${ coordinates[ 0 ] },${ coordinates[ 1 ] },${ todayTimestamp }?exclude=currently,minutely,daily,alerts,flags`;[m
+ [m
+[31m-		let forecast;[m
+[32m+[m		[32mlet yesterdayData, todayData, forecastData;[m
+ 		try {[m
+[31m-			forecast = await httpJSONRequest( forecastUrl );[m
+[32m+[m			[32myesterdayData = await httpJSONRequest( yesterdayUrl );[m
+[32m+[m			[32mtodayData = await httpJSONRequest( todayUrl );[m
+[32m+[m			[32mforecastData = await httpJSONRequest( forecastUrl );[m
+ 		} catch ( err ) {[m
+ 			console.error( "Error retrieving weather information from Dark Sky:", err );[m
+ 			throw "An error occurred while retrieving weather information from Dark Sky."[m
+ 		}[m
+ [m
+[31m-		if ( !forecast.currently || !forecast.daily || !forecast.daily.data ) {[m
+[32m+[m		[32mif ( !todayData || !todayData.hourly || !todayData.hourly.data || !yesterdayData || !yesterdayData.hourly || !yesterdayData.hourly.data || !yesterdayData.daily || !yesterdayData.daily.data || !forecastData || !forecastData.currently || !forecastData.daily || !forecastData.daily.data ) {[m
+ 			throw "Necessary field(s) were missing from weather information returned by Dark Sky.";[m
+ 		}[m
+ [m
+[32m+[m		[32mvar currentPrecip:number = 0,[m
+[32m+[m			[32myesterdayPrecip:number = 0,[m
+[32m+[m			[32mmaxCount:number = 24,[m
+[32m+[m			[32mindex: number;[m
+[32m+[m
+[32m+[m		[32mfor ( index = 0; index < maxCount; index++ ) {[m
+[32m+[m
+[32m+[m			[32m// Only use current day rainfall data for the hourly readings prior to the current hour[m
+[32m+[m			[32mif ( todayData.hourly.data[index].time <= ( forecastData.currently.time - 3600 ) ) {[m
+[32m+[m				[32mcurrentPrecip += parseFloat( todayData.hourly.data[index].precipIntensity );[m
+[32m+[m			[32m}[m
+[32m+[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32mfor ( index = 0; index < maxCount; index++ ) {[m
+[32m+[m			[32myesterdayPrecip += parseFloat( yesterdayData.hourly.data[index].precipIntensity );[m
+[32m+[m		[32m}[m
+[32m+[m
+ 		const weather: WeatherData = {[m
+ 			weatherProvider: "DarkSky",[m
+[31m-			temp: Math.floor( forecast.currently.temperature ),[m
+[31m-			humidity: Math.floor( forecast.currently.humidity * 100 ),[m
+[31m-			wind: Math.floor( forecast.currently.windSpeed ),[m
+[31m-			description: forecast.currently.summary,[m
+[31m-			icon: this.getOWMIconCode( forecast.currently.icon ),[m
+[31m-[m
+[32m+[m			[32mtemp: parseInt( forecastData.currently.temperature ),[m
+[32m+[m			[32mhumidity: ( yesterdayData.daily.data[0].humidity ) * 100,[m
+[32m+[m			[32mwind: parseInt( yesterdayData.daily.data[0].windSpeed ),[m
+[32m+[m			[32mdescription: forecastData.currently.summary || "",[m
+[32m+[m			[32micon: forecastData.currently.icon || "clear-day",[m
+ 			region: "",[m
+ 			city: "",[m
+[31m-			minTemp: Math.floor( forecast.daily.data[ 0 ].temperatureMin ),[m
+[31m-			maxTemp: Math.floor( forecast.daily.data[ 0 ].temperatureMax ),[m
+[31m-			precip: forecast.daily.data[ 0 ].precipIntensity * 24,[m
+[32m+[m			[32mminTemp: parseInt( yesterdayData.daily.data[0].temperatureLow ),  //Takes logic of high during the day,[m
+[32m+[m			[32mmaxTemp: parseInt( yesterdayData.daily.data[0].temperatur
