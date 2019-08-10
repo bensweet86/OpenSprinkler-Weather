@@ -12,6 +12,7 @@ export interface AdjustmentMethod {
 	 * weather data.
 	 * @param pws The PWS to retrieve weather data from, or undefined if a PWS should not be used. If the implementation
 	 * of this method does not have PWS support, this parameter may be ignored and coordinates may be used instead.
+	 * @param key Optional key to be used for the endpoint API provided with Weather API request
 	 * @return A Promise that will be resolved with the result of the calculation, or rejected with an error message if
 	 * the watering scale cannot be calculated.
 	 * @throws An error message can be thrown if an error occurs while calculating the watering scale.

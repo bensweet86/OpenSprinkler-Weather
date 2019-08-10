@@ -13,7 +13,8 @@ async function calculateEToWateringScale(
 	adjustmentOptions: EToScalingAdjustmentOptions,
 	coordinates: GeoCoordinates,
 	weatherProvider: WeatherProvider,
-	pws?: PWS
+	pws?: PWS,
+	key?: string
 ): Promise< AdjustmentMethodResponse > {
 
 	if ( pws ) {
@@ -31,7 +32,7 @@ async function calculateEToWateringScale(
 	 */
 
 	// This will throw an error message if ETo data cannot be retrieved.
-	const etoData: EToData = await weatherProvider.getEToData( coordinates );
+	const etoData: EToData = await weatherProvider.getEToData( coordinates, key );
 
 	let baseETo: number;
 	// Default elevation is based on data from https://www.pnas.org/content/95/24/14009.

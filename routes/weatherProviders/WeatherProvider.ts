@@ -31,11 +31,12 @@ export class WeatherProvider {
 	/**
 	 * Retrieves the data necessary for calculating potential ETo.
 	 * @param coordinates The coordinates to retrieve the data for.
+	 * @param key Optional key to be used for the endpoint API provided with Weather API request
 	 * @return A Promise that will be resolved with the EToData if it is successfully retrieved,
 	 * or rejected with an error message if an error occurs while retrieving the EToData or the WeatherProvider does
 	 * not support this method.
 	 */
-	getEToData( coordinates: GeoCoordinates ): Promise< EToData > {
+	getEToData( coordinates: GeoCoordinates, key?: String ): Promise< EToData > {
 		throw "Selected WeatherProvider does not support getEToData";
 	};
 

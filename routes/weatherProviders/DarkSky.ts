@@ -171,11 +171,11 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 		return weather;
 	}
 
-	public async getEToData( coordinates: GeoCoordinates ): Promise< EToData > {
+	public async getEToData( coordinates: GeoCoordinates, key?: String ): Promise< EToData > {
 		// The Unix epoch seconds timestamp of 24 hours ago.
 		const timestamp: number = moment().subtract( 1, "day" ).unix();
 
-		const DARKSKY_API_KEY = process.env.DARKSKY_API_KEY,
+		const DARKSKY_API_KEY = key || process.env.DARKSKY_API_KEY,
 			historicUrl = `https://api.darksky.net/forecast/${DARKSKY_API_KEY}/${coordinates[0]},${coordinates[1]},${timestamp}`;
 
 		let historicData;
