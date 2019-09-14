@@ -3,6 +3,7 @@ import * as moment from "moment";
 import { AdjustmentMethod, AdjustmentMethodResponse, AdjustmentOptions } from "./AdjustmentMethod";
 import { BaseWateringData, GeoCoordinates, PWS } from "../../types";
 import { WeatherProvider } from "../weatherProviders/WeatherProvider";
+import { CodedError, ErrorCode } from "../../errors";
 
 
 /**
@@ -18,7 +19,7 @@ async function calculateEToWateringScale(
 ): Promise< AdjustmentMethodResponse > {
 
 	if ( pws ) {
-		throw "ETo adjustment method does not support personal weather stations through WUnderground.";
+		throw new CodedError( ErrorCode.PwsNotSupported );
 	}
 
 	// Temporarily disabled since OWM forecast data is checking if rain is forecasted for 3 hours in the future.
@@ -41,7 +42,7 @@ async function calculateEToWateringScale(
 	if ( adjustmentOptions && "baseETo" in adjustmentOptions ) {
 		baseETo = adjustmentOptions.baseETo
 	} else {
-		throw "A baseline potential ETo must be provided.";
+		throw new CodedError( ErrorCode.MissingAdjustmentOption );
 	}
 
 	if ( adjustmentOptions && "elevation" in adjustmentOptions ) {

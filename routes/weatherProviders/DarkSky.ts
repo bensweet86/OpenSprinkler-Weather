@@ -4,6 +4,7 @@ import { GeoCoordinates, WeatherData, ZimmermanWateringData } from "../../types"
 import { httpJSONRequest } from "../weather";
 import { WeatherProvider } from "./WeatherProvider";
 import { approximateSolarRadiation, CloudCoverInfo, EToData } from "../adjustmentMethods/EToAdjustmentMethod";
+import { CodedError, ErrorCode } from "../../errors";
 
 export default class DarkSkyWeatherProvider extends WeatherProvider {
 
@@ -35,11 +36,11 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 			forecastData = await httpJSONRequest( forecastUrl );
 		} catch ( err ) {
 			console.error( "Error retrieving weather information from Dark Sky:", err );
-			throw "An error occurred while retrieving weather information from Dark Sky."
+			throw new CodedError( ErrorCode.WeatherApiError );
 		}
 
 		if ( !todayData || !todayData.hourly || !todayData.hourly.data || !yesterdayData || !yesterdayData.hourly || !yesterdayData.hourly.data || !yesterdayData.daily || !yesterdayData.daily.data || !forecastData || !forecastData.currently || !forecastData.daily || !forecastData.daily.data) {
-			throw "Necessary field(s) were missing from weather information returned by Dark Sky.";
+			throw new CodedError( ErrorCode.MissingWeatherField );
 		}
 
 		var currentPrecip:number = 0,
@@ -66,7 +67,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 
 		// Fail if not enough data is available.
 		if ( samples.length !== maxCount ) {
-			throw "Insufficient data was returned by Dark Sky.";
+			throw new CodedError( ErrorCode.InsufficientWeatherData );
 		}
 
 		const totals = { temp: 0, humidity: 0, precip: 0 };
@@ -182,7 +183,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 		try {
 			historicData = await httpJSONRequest( historicUrl );
 		} catch (err) {
-			throw "An error occurred while retrieving weather information from Dark Sky."
+			throw new CodedError( ErrorCode.WeatherApiError );
 		}
 
 		const cloudCoverInfo: CloudCoverInfo[] = historicData.hourly.data.map( ( hour ): CloudCoverInfo => {
