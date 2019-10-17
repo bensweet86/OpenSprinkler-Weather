@@ -28,6 +28,10 @@ async function calculateZimmermanWateringScale(
 	}
 
 	const rawData = {
+		minT: wateringData ? Math.round( wateringData.minTemp ) : null,
+		maxT: wateringData ? Math.round( wateringData.maxTemp ) : null,
+		precipY: wateringData ? Math.round( wateringData.yesterdayPrecip ) : null,
+		precipT: wateringData ? Math.round( wateringData.currentPrecip ) : null,
 		h: wateringData ? Math.round( wateringData.humidity * 100) / 100 : null,
 		p: wateringData ? Math.round( wateringData.precip * 100 ) / 100 : null,
 		t: wateringData ? Math.round( wateringData.temp * 10 ) / 10 : null,
