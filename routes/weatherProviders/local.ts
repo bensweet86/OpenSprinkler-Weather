@@ -54,6 +54,9 @@ export default class LocalWeatherProvider extends WeatherProvider {
 			maxTemp: undefined,
 			humidity: Math.floor( queue[ 0 ].humidity ) || undefined ,
 			wind: Math.floor( queue[ 0 ].windSpeed * 10 ) / 10 || undefined,
+			yesterdayPrecip: undefined,
+			currentPrecip: undefined,
+			forecastPrecip: undefined,
 			precip: Math.floor( queue.reduce( ( sum, obs ) => sum + ( obs.precip || 0 ), 0) * 100 ) / 100,
 			description: "",
 			icon: "01d",
@@ -79,14 +82,14 @@ export default class LocalWeatherProvider extends WeatherProvider {
 			weatherProvider: "local",
 			temp: queue.reduce( ( sum, obs ) => !isNaN( obs.temp ) && ++cTemp ? sum + obs.temp : sum, 0) / cTemp,
 			humidity: queue.reduce( ( sum, obs ) => !isNaN( obs.humidity ) && ++cHumidity ? sum + obs.humidity : sum, 0) / cHumidity,
+			minTemp: undefined,
+			maxTemp: undefined,
+			yesterdayPrecip: undefined,
+			currentPrecip: undefined,
+			forecastPrecip: undefined,
 			precip: queue.reduce( ( sum, obs ) => !isNaN( obs.precip ) && ++cPrecip ? sum + obs.precip : sum, 0),
 			raining: ( ( moment().unix() - lastRainEpoch ) / 60 / 60 < 1 ),
 		};
-
-		if ( !( cTemp && cHumidity && cPrecip ) ) {
-			console.error( "There is insufficient data to support Zimmerman calculation from local PWS." );
-			throw new CodedError( ErrorCode.InsufficientWeatherData );
-		}
 
 		return result;
 	};
