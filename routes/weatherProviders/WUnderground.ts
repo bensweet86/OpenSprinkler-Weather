@@ -5,7 +5,7 @@ import { CodedError, ErrorCode } from "../../errors";
 
 export default class WUnderground extends WeatherProvider {
 
-	async getWateringData( coordinates: GeoCoordinates, key?: String, pws?: PWS ): Promise< ZimmermanWateringData > {
+	async getWateringData( coordinates: GeoCoordinates, pws?: PWS, key?: String ): Promise< ZimmermanWateringData > {
 		if ( !pws ) {
 			throw new CodedError( ErrorCode.NoPwsProvided );
 		}

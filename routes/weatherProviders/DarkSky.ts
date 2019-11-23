@@ -19,7 +19,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 		}
 	}*/
 
-	public async getWateringData( coordinates: GeoCoordinates, key?: String ): Promise< ZimmermanWateringData > {
+	public async getWateringData( coordinates: GeoCoordinates, pws?: undefined, key?: String ): Promise< ZimmermanWateringData > {
 		// The Unix timestamp of 24 hours ago.
 		const yesterdayTimestamp: number = moment().subtract( 1, "day" ).unix();
 		const todayTimestamp: number = moment().unix();
