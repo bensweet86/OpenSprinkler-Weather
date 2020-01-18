@@ -17,7 +17,9 @@ async function calculateZimmermanWateringScale(
 	key?: string
 ): Promise< AdjustmentMethodResponse > {
 	const wateringData: ZimmermanWateringData = await weatherProvider.getWateringData( coordinates, pws, key );
-
+	// Temporarily disabled since OWM forecast data is checking if rain is forecasted for 3 hours in the future.
+	// NB: needs to be disabled otherwise rawdata block not returned
+	/*
 	// Don't water if it is currently raining.
 	if ( wateringData && wateringData.raining ) {
 		return {
@@ -26,6 +28,7 @@ async function calculateZimmermanWateringScale(
 			wateringData: wateringData
 		}
 	}
+	*/
 
 	const rawData = {
 		weatherProvider: wateringData.weatherProvider,
