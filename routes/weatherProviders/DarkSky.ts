@@ -88,8 +88,8 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 			weatherProvider: "DarkSky",
 			temp: totals.temp / 24,
 			humidity: parseFloat( yesterdayData.daily.data[0].humidity ) * 100,
-			minTemp: parseInt( yesterdayData.daily.data[0].temperatureLow ),  //Takes logic of high during the day,
-			maxTemp: parseInt( yesterdayData.daily.data[0].temperatureHigh ), //low during the night based on DN logic
+			minTemp: parseFloat( yesterdayData.daily.data[0].temperatureLow ),  //Takes logic of high during the day,
+			maxTemp: parseFloat( yesterdayData.daily.data[0].temperatureHigh ), //low during the night based on DN logic
 			yesterdayPrecip: yesterdayPrecip,
 			currentPrecip: currentPrecip,
 			forecastPrecip: parseFloat( forecastData.daily.data[0].precipIntensity ) * 24,
