@@ -221,7 +221,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 	}
 
 	public shouldCacheWateringScale(): boolean {
-		return true;
+		return false;
 	}
 
 	private getOWMIconCode(icon: string) {
