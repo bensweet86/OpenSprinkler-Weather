@@ -66,7 +66,8 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 		];
 
 		// Fail if not enough data is available.
-		if ( samples.length !== maxCount ) {
+		// There will only be 23 samples on the day that daylight saving time begins.
+		if ( samples.length !== maxCount && samples.length !== maxCount-1 ) {
 			throw new CodedError( ErrorCode.InsufficientWeatherData );
 		}
 
@@ -86,7 +87,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 
 		return {
 			weatherProvider: "DarkSky",
-			temp: totals.temp / 24,
+			temp: totals.temp / samples.length,
 			humidity: parseFloat( yesterdayData.daily.data[0].humidity ) * 100,
 			minTemp: parseFloat( yesterdayData.daily.data[0].temperatureLow ),  //Takes logic of high during the day,
 			maxTemp: parseFloat( yesterdayData.daily.data[0].temperatureHigh ), //low during the night based on DN logic
