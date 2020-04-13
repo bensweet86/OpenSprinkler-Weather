@@ -63,7 +63,7 @@ export interface WeatherDataForecast {
 
 export interface BaseWateringData {
     /** The WeatherProvider that generated this data. */
-    weatherProvider: WeatherProviderId;
+    weatherProvider: WeatherProviderShortId;
     /** The total precipitation over the window (in inches). */
     precip: number;
 }
@@ -95,3 +95,4 @@ export interface ZimmermanWateringData extends BaseWateringData {
 }
 
 export type WeatherProviderId = "OWM" | "DarkSky" | "local" | "mock" | "WUnderground";
+export type WeatherProviderShortId = "OWM" | "DS" | "local" | "mock" | "WU";

@@ -86,7 +86,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 		}
 
 		return {
-			weatherProvider: "DarkSky",
+			weatherProvider: "DS",
 			temp: totals.temp / samples.length,
 			humidity: parseFloat( yesterdayData.daily.data[0].humidity ) * 100,
 			minTemp: parseFloat( yesterdayData.daily.data[0].temperatureLow ),  //Takes logic of high during the day,
@@ -208,7 +208,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 		}
 
 		return {
-			weatherProvider: "DarkSky",
+			weatherProvider: "DS",
 			periodStartTime: historicData.hourly.data[ 0 ].time,
 			minTemp: historicData.daily.data[ 0 ].temperatureMin,
 			maxTemp: historicData.daily.data[ 0 ].temperatureMax,
