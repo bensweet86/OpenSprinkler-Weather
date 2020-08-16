@@ -1,6 +1,6 @@
 <img align="left" height="150" src="http://albahra.com/opensprinkler/icon-new.png"><h3>&nbsp;OpenSprinkler Weather Service [DarkSky Mod] [![GitHub version](https://badge.fury.io/gh/bensweet86%2FOpenSprinkler-Weather.svg)](https://badge.fury.io/gh/bensweet86%2FOpenSprinkler-Weather)</h3>
-&nbsp;[![Build Status](https://api.travis-ci.org/bensweet86/OpenSprinkler-Weather.svg?branch=master)](https://travis-ci.org/) [![devDependency Status](https://david-dm.org/bensweet86/OpenSprinkler-Weather.svg)](https://david-dm.org/bensweet86/OpenSprinkler-Weather#info=dependencies)  
-&nbsp;[Official Site][official] | [Support][help] | [Changelog][changelog]  
+&nbsp;[![Build Status](https://api.travis-ci.org/bensweet86/OpenSprinkler-Weather.svg?branch=master)](https://travis-ci.org/) [![devDependency Status](https://david-dm.org/bensweet86/OpenSprinkler-Weather.svg)](https://david-dm.org/bensweet86/OpenSprinkler-Weather#info=dependencies)
+&nbsp;[Official Site][official] | [Support][help] | [Changelog][changelog]
 <br>
 This script is used by OpenSprinkler Unified Firmware to update the water level of the device. It also provides timezone information based on user location along with other local information (sunrise, sunset, daylights saving time, etc).
 
@@ -60,3 +60,24 @@ For more information on the "WeeWX Solution" click [here](docs/weewx.md)
 
 - Davis Vantage: a solution for this PWS has been kindly provided by @rmloeb [here](docs/davis-vantage.md)
 - Netatmo: instructions for configuring this PWS have been greatfully provided by @franzstein [here](docs/netatmo.md)
+
+## Docker
+
+It is possible to build a self-contained docker image from this repository.  It can then be used to run the service
+without installing any prerequisites or setting up systemd.
+
+### Building the Docker image
+```shell script
+./build-docker.sh  # run with -h for other options
+```
+The above will generate baselineEtoData (if not already done) and then build a complete opensprinkler-weather docker image.
+
+### Running the Docker image
+```shell script
+docker create --name=osweather -p 3000:3000 --restart unless-stopped opensprinkler-weather
+docker start osweather
+
+# Instead of the above, use this for testing/troubleshooting by running it in the foreground:
+docker run --rm -it -p 3000:3000 opensprinkler-weather
+```
+Note: to expose a different port, change `-p 3000:3000` to, eg `-p12345:3000`
