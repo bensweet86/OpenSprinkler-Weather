@@ -45,7 +45,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 
 		var currentPrecip:number = 0,
 			yesterdayPrecip:number = 0,
-			maxCount:number = 24,
+			maxCount:number = todayData.hourly.data.length,
 			index: number;
 
 		for ( index = 0; index < maxCount; index++ ) {
@@ -125,7 +125,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 
 		var currentPrecip:number = 0,
 			yesterdayPrecip:number = 0,
-			maxCount:number = 24,
+			maxCount:number = todayData.hourly.data.length,
 			index: number;
 
 		for ( index = 0; index < maxCount; index++ ) {
