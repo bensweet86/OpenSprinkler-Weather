@@ -45,10 +45,11 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 
 		var currentPrecip:number = 0,
 			yesterdayPrecip:number = 0,
-			maxCount:number = todayData.hourly.data.length,
+			maxCountToday:number = todayData.hourly.data.length,
+			maxCountYesterday:number = yesterdayData.hourly.data.length,
 			index: number;
 
-		for ( index = 0; index < maxCount; index++ ) {
+		for ( index = 0; index < maxCountToday; index++ ) {
 
 			// Only use current day rainfall data for the hourly readings prior to the current hour
 			if ( todayData.hourly.data[index].time <= ( forecastData.currently.time - 3600 ) ) {
@@ -57,7 +58,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 
 		}
 
-		for ( index = 0; index < maxCount; index++ ) {
+		for ( index = 0; index < maxCountYesterday; index++ ) {
 			yesterdayPrecip += parseFloat( yesterdayData.hourly.data[index].precipIntensity );
 		}
 
@@ -67,7 +68,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 
 		// Fail if not enough data is available.
 		// There will only be 23 samples on the day that daylight saving time begins.
-		if ( samples.length !== maxCount && samples.length !== maxCount-1 ) {
+		if ( samples.length !== maxCountYesterday && samples.length !== maxCountYesterday-1 ) {
 			throw new CodedError( ErrorCode.InsufficientWeatherData );
 		}
 
@@ -125,10 +126,11 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 
 		var currentPrecip:number = 0,
 			yesterdayPrecip:number = 0,
-			maxCount:number = todayData.hourly.data.length,
+			maxCountToday:number = todayData.hourly.data.length,
+			maxCountYesterday:number = yesterdayData.hourly.data.length,
 			index: number;
 
-		for ( index = 0; index < maxCount; index++ ) {
+		for ( index = 0; index < maxCountToday; index++ ) {
 
 			// Only use current day rainfall data for the hourly readings prior to the current hour
 			if ( todayData.hourly.data[index].time <= ( forecastData.currently.time - 3600 ) ) {
@@ -137,7 +139,7 @@ export default class DarkSkyWeatherProvider extends WeatherProvider {
 
 		}
 
-		for ( index = 0; index < maxCount; index++ ) {
+		for ( index = 0; index < maxCountYesterday; index++ ) {
 			yesterdayPrecip += parseFloat( yesterdayData.hourly.data[index].precipIntensity );
 		}
 
