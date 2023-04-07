@@ -21,7 +21,7 @@ The production version runs on Amazon Elastic Beanstalk (AWS EB) and therefore t
 ---
 ## Installating a Local Weather Service
 
-If you would like to choose between different Weather Providers (currently OpenWeatherMap and DarkSky are supported) or use your local PWS to provide the weather information used by OpenSprinkler then you can install and configure the Weather Service on a device within your own local network.
+If you would like to choose between different Weather Providers (currently OpenWeatherMap, DarkSky and Apple WeatherKit are supported) or use your local PWS to provide the weather information used by OpenSprinkler then you can install and configure the Weather Service on a device within your own local network.
 
 You will need a 24x7 "always on" machine to host the service (this can be a Windows or Linux machine or even a Raspberry Pi device) provided it supports the `Node.js` environment.
 
